@@ -8,9 +8,13 @@ export const apiUrl = (path) => `${API_BASE_URL}${path}`;
 
 // Debug: Log the API URL being used (will show in browser console)
 console.log('🔧 API Configuration Loaded');
-console.log('🌐 VITE_API_URL:', import.meta.env.VITE_API_URL);
+if (import.meta.env.VITE_API_URL) {
+  console.log('🌐 VITE_API_URL:', import.meta.env.VITE_API_URL, '(from environment)');
+} else {
+  console.log('🌐 VITE_API_URL: not set, using default');
+}
 console.log('🎯 API_BASE_URL:', API_BASE_URL);
-console.log('📍 Mode:', import.meta.env.MODE);
+console.log('📍 Mode:', import.meta.env.MODE || 'production');
 
 // Verify API is accessible (only in browser)
 if (typeof window !== 'undefined') {
