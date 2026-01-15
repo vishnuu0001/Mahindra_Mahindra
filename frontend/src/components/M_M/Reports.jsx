@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Download, Calendar, Filter, TrendingUp, Target, CheckCircle2, AlertCircle, ChevronDown, ChevronRight, RefreshCw, Calculator } from 'lucide-react';
+import { apiUrl } from '../../config';
 
 const Reports = () => {
   const [areas, setAreas] = useState([]);
@@ -21,7 +22,7 @@ const Reports = () => {
 
   const fetchAreas = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/mm/areas');
+      const response = await fetch(apiUrl('/api/mm/areas'));
       
       if (!response.ok) {
         console.error('Failed to fetch areas:', response.status, response.statusText);
@@ -60,7 +61,7 @@ const Reports = () => {
   const refreshSimulatedData = async () => {
     setRefreshing(true);
     try {
-      const response = await fetch('http://localhost:8000/api/mm/refresh-reports-data', {
+      const response = await fetch(apiUrl('/api/mm/refresh-reports-data'), {
         method: 'POST',
       });
       const result = await response.json();

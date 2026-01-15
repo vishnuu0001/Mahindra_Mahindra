@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Award, BarChart3, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react';
+import { apiUrl } from '../../config';
 
 const RatingScales = () => {
   const [ratingScales, setRatingScales] = useState([]);
@@ -12,7 +13,7 @@ const RatingScales = () => {
 
   const fetchRatingScales = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/mm/rating-scales');
+      const response = await fetch(apiUrl('/api/mm/rating-scales'));
       
       if (!response.ok) {
         console.error('Failed to fetch rating scales:', response.status, response.statusText);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckSquare, Square, ChevronDown, ChevronRight, Save, RefreshCw } from 'lucide-react';
+import { apiUrl } from '../../config';
 
 const SmartFactoryChecksheet = () => {
   const [maturityLevels, setMaturityLevels] = useState([]);
@@ -26,7 +27,7 @@ const SmartFactoryChecksheet = () => {
   const initializeAssessment = async () => {
     try {
       // Create a new assessment session
-      const response = await fetch('http://localhost:8000/api/mm/assessments', {
+      const response = await fetch(apiUrl('/api/mm/assessments'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -41,7 +42,7 @@ const SmartFactoryChecksheet = () => {
         setAssessmentId(assessment.id);
         
         // Load existing selections if any
-        const selectionsResponse = await fetch(`http://localhost:8000/api/mm/checksheet-selections/${assessment.id}`);
+        const selectionsResponse = await fetch(apiUrl(`/api/mm/checksheet-selections/${assessment.id}`));
         if (selectionsResponse.ok) {
           const selections = await selectionsResponse.json();
           const selectedMap = {};
@@ -60,7 +61,7 @@ const SmartFactoryChecksheet = () => {
 
   const fetchMaturityLevels = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/mm/maturity-levels');
+      const response = await fetch(apiUrl('/api/mm/maturity-levels'));
       
       if (!response.ok) {
         console.error('Failed to fetch maturity levels:', response.status, response.statusText);
@@ -90,7 +91,7 @@ const SmartFactoryChecksheet = () => {
   const refreshSimulatedData = async () => {
     setRefreshing(true);
     try {
-      const response = await fetch('http://localhost:8000/api/mm/refresh-simulated-data', {
+      const response = await fetch(apiUrl('/api/mm/refresh-simulated-data'), {
         method: 'POST',
       });
       const result = await response.json();
@@ -128,7 +129,7 @@ const SmartFactoryChecksheet = () => {
     // Save selection to backend immediately
     if (assessmentId) {
       try {
-        await fetch('http://localhost:8000/api/mm/checksheet-selections', {
+        await fetch(apiUrl('/api/mm/checksheet-selections'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify([{
@@ -191,7 +192,7 @@ const SmartFactoryChecksheet = () => {
     setSaving(true);
     try {
       // Trigger dimension score calculation
-      const response = await fetch(`http://localhost:8000/api/mm/calculate-dimension-scores?assessment_id=${assessmentId}`, {
+      const response = await fetch(apiUrl(`/api/mm/calculate-dimension-scores?assessment_id=${assessmentId}`), {
         method: 'POST',
       });
       
