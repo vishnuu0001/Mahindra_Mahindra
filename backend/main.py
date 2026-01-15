@@ -11,7 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from database import get_db, init_db, Area, Dimension, MaturityLevel, RatingScale, Assessment, DimensionAssessment, ChecksheetSelection
+from database import get_db, Area, Dimension, MaturityLevel, RatingScale, Assessment, DimensionAssessment, ChecksheetSelection
+from database import init_db as init_sqlalchemy_db
 
 app = FastAPI(title="Mahindra and Mahindra WP1 Simulation Engine")
 
@@ -27,9 +28,14 @@ app.add_middleware(
 if not os.environ.get('VERCEL'):
     @app.on_event("startup")
     async def startup_event():
-        init_db()
+        init_sqlalchemy_db()
 
-DB_PATH = Path(__file__).with_name("app.db")
+# Old SQLite DB_PATH - only used for legacy functions if needed
+# In Vercel serverless, use /tmp directory
+if os.environ.get('VERCEL'):
+    DB_PATH = Path("/tmp/app.db")
+else:
+    DB_PATH = Path(__file__).with_name("app.db")
 
 
 class AppMetrics(BaseModel):
@@ -57,13 +63,24 @@ def calculate_confidence(metrics: AppMetrics):
 
 
 def get_connection() -> sqlite3.Connection:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
+    """Legacy SQLite connection - prefer using SQLAlchemy database"""
+    if os.environ.get('VERCEL'):
+        # In Vercel, /tmp is the only writable directory
+        db_path = Path("/tmp/app.db")
+    else:
+        db_path = DB_PATH
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-def init_db() -> None:
+def init_old_sqlite_db() -> None:
+    """Legacy init function - NOT USED in current version"""
+    # This function is kept for backward compatibility but not called
+    # SQLAlchemy database.py handles all database initialization now
+    pass
     schema = """
     CREATE TABLE IF NOT EXISTS segments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -303,9 +320,8 @@ def init_db() -> None:
         conn.commit()
 
 
-@app.on_event("startup")
-def on_startup():
-    init_db()
+# Legacy startup event removed - database initialization now handled by SQLAlchemy
+# in database.py and api/index.py for serverless
 
 
 @app.get("/api/v1/portfolio")
