@@ -17,10 +17,11 @@ This guide explains how to set up the application so other computers on your net
 2. **Start the Frontend Server**
    ```powershell
    cd frontend
-   npm run dev
+   set HOST=0.0.0.0
+   npm start
    ```
-   - The Vite dev server is configured to accept external connections
-   - Uses proxy to route API calls to the backend
+   - The Create React App dev server will accept external connections
+   - Uses proxy (configured in package.json) to route API calls to the backend
 
 3. **Access from Other Computers**
    - Find your computer's IP address:
@@ -31,7 +32,7 @@ This guide explains how to set up the application so other computers on your net
    
    - On other computers, open browser and go to:
      ```
-     http://192.168.1.100:5173
+     http://192.168.1.100:3000
      ```
      (Replace `192.168.1.100` with your actual IP)
 
@@ -42,17 +43,18 @@ If you want to use the deployed Vercel backend instead of running it locally:
 1. **Update .env file**
    ```bash
    # frontend/.env
-   VITE_API_URL=https://mahindraservicesapi.vercel.app
+   REACT_APP_API_URL=https://mahindraservicesapi.vercel.app
    ```
 
 2. **Start Frontend Only**
    ```powershell
    cd frontend
-   npm run dev
+   set HOST=0.0.0.0
+   npm start
    ```
 
 3. **Access from Other Computers**
-   - Same as above: `http://YOUR_IP:5173`
+   - Same as above: `http://YOUR_IP:3000`
 
 ## Troubleshooting
 
@@ -136,6 +138,6 @@ Should return: `{"status":"healthy","timestamp":"..."}`
 ## Summary
 
 ✅ **Backend**: `uvicorn main:app --host 0.0.0.0 --port 8000 --reload`  
-✅ **Frontend**: `npm run dev` (already configured for network access)  
-✅ **Access**: `http://YOUR_IP:5173` from any computer on the network  
+✅ **Frontend**: `set HOST=0.0.0.0 && npm start` (configured for network access)  
+✅ **Access**: `http://YOUR_IP:3000` from any computer on the network  
 ✅ **Verify**: Check browser console for API connection logs

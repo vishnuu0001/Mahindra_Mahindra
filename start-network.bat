@@ -25,7 +25,7 @@ timeout /t 3 /nobreak >nul
 
 echo.
 echo Step 3: Starting Frontend Server...
-start "Frontend Server" cmd /k "cd /d "%~dp0frontend" && npm run dev"
+start "Frontend Server" cmd /k "cd /d "%~dp0frontend" && set HOST=0.0.0.0 && npm start"
 
 echo.
 echo ========================================
@@ -33,9 +33,9 @@ echo  Servers Started Successfully!
 echo ========================================
 echo.
 echo Backend:  http://localhost:8000
-echo Frontend: http://localhost:5173
+echo Frontend: http://localhost:3000
 echo.
-echo Network Access: http://YOUR_IP:5173
+echo Network Access: http://YOUR_IP:3000
 echo (Check the terminal windows for your IP address)
 echo.
 echo Press any key to close this window (servers will keep running)...
