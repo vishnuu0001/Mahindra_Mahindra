@@ -1,0 +1,60 @@
+{
+  "maturity_levels": {
+    "L1": "L1 At lower maturity-  tracking is seen; data is often siloed",
+    "L2": "L2 At intermediate maturity, metrics become real-time, integrated across systems, and used routinely in decisions (e.g., predictive maintenance and FPY by VIN).",
+    "L3": "L3 At advanced maturity Impact is seen on metrices (OEE uplift, energy per unit, COQ reduction, ROCE) and can demonstrate that AI/automation is self-optimizing key KPIs across plants."
+  },
+  "categories": [
+    {
+      "name": "Operations & Flow",
+      "metrics": [
+        "Overall Equipment Effectiveness (OEE) and OEE uplift",
+        "Baseline OEE and the percentage increase attributed to digital / smart factory initiatives (target uplift is often the lead success metric).​",
+        "Targetted Sprints (4-6 weeks)",
+        "1. Micro stoppages identification & Elimination",
+        "2. Change overs > TAKE Time - identification & Elimination",
+        "3. Unplanned Downtime - identification & Elimination",
+        "Supporting metrics: throughput vs plan, schedule adherence, and changeover time reduction.​",
+        "Flow, responsiveness, and stability",
+        "Throughput per line, takt adherence, line balance index, and average queue/buffer times between key processes.​",
+        "On-time units produced (actual vs plan), re-plans per week, and average time to recover from a disruption or major stoppage.​"
+      ]
+    },
+    {
+      "name": "Quality & Traceability",
+      "metrics": [
+        "First Pass Yield (FPY) and quality yield",
+        "FPY per critical station, scrap and rework rate, ppm defects, and trend of these indicators after digitalization.​",
+        "Warranty claims and field failure rates linked back to manufacturing data (evidence of effective traceability and analytics).​",
+        "Traceability and zero-defect capability",
+        "Coverage of VIN/serial-level traceability for critical parameters (what % of operations and parameters are traceable).​",
+        "Number of issues detected in-line vs at end-of-line or in the field (earlier detection indicates higher maturity).​"
+      ]
+    },
+    {
+      "name": "Assets, Maintenance & Energy",
+      "metrics": [
+        "Downtime, reliability, and predictive impact",
+        "Mean time between failures (MTBF), mean time to repair (MTTR), planned vs unplanned downtime, and average downtime per machine/line.​",
+        "Percentage of assets under predictive maintenance and the reduction in unplanned stops attributed to predictive models.​",
+        "Energy and resource efficiency",
+        "Energy consumption per unit produced, peak demand, and specific consumption by shop (body, paint, GA, etc.).​",
+        "Material utilization and waste/reject cost per unit, tracked and improved through smart manufacturing use cases.​",
+        "People, Digital Ways of Working & Safety",
+        "Workforce digital adoption and efficiency",
+        "Percentage of operators/engineers actively using digital work instructions, dashboards, or mobile apps daily.​",
+        "Labor productivity (units per labor hour) and improvement linked to automation, cobots, and decision-support tools.​",
+        "Safety and ergonomics",
+        "Reported safety incidents per employee and % reduction targeted via smart factory solutions.​",
+        "Near-miss reporting rate and closure time on safety actions, showing proactive and data-driven safety culture.​",
+        "Supply Chain, Integration & Business Impact",
+        "Supply, logistics, and integration maturity",
+        "On-time delivery (OTD) to customers, schedule adherence to customer call-offs, and inventory turns for key materials.​",
+        "Degree of integration: % of processes/orders fully flowing digitally across ERP–MES–WMS–QMS–PLM (can be scored as a maturity metric, not just a KPI).​",
+        "Financial and strategic outcomes",
+        "Manufacturing cost per unit, cost of poor quality, and their improvement after smart factory deployments.​",
+        "Return on capital employed (ROCE) or similar, used as a top-level success metric for smart factory programs.​"
+      ]
+    }
+  ]
+}
