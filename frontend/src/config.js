@@ -1,20 +1,25 @@
 // API Configuration
 // For local development, use localhost
 // For production, use your deployed backend URL
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://mahindraservicesapi.vercel.app';
+
+// In development mode, use relative URLs to leverage Vite proxy
+// This allows other computers on the network to access the API through the dev server
+const isDevelopment = import.meta.env.MODE === 'development';
+
+export const API_BASE_URL = isDevelopment 
+  ? '' // Use relative URLs in development (proxied by Vite to backend)
+  : (import.meta.env.VITE_API_URL || 'https://mahindraservicesapi.vercel.app');
 
 // Helper function for making API calls
 export const apiUrl = (path) => `${API_BASE_URL}${path}`;
 
 // Debug: Log the API URL being used (will show in browser console)
 console.log('🔧 API Configuration Loaded');
+console.log('🎯 Mode:', import.meta.env.MODE || 'production');
+console.log('🌐 API_BASE_URL:', API_BASE_URL || '(relative - using proxy)');
 if (import.meta.env.VITE_API_URL) {
-  console.log('🌐 VITE_API_URL:', import.meta.env.VITE_API_URL, '(from environment)');
-} else {
-  console.log('🌐 VITE_API_URL: not set, using default');
+  console.log('🔗 VITE_API_URL:', import.meta.env.VITE_API_URL, '(from environment)');
 }
-console.log('🎯 API_BASE_URL:', API_BASE_URL);
-console.log('📍 Mode:', import.meta.env.MODE || 'production');
 
 // Verify API is accessible (only in browser)
 if (typeof window !== 'undefined') {
@@ -30,6 +35,6 @@ if (typeof window !== 'undefined') {
     .catch(error => {
       console.error('❌ API Connection: ERROR -', error.message);
       console.error('🔗 Attempted URL:', apiUrl('/api/mm/areas'));
-      console.error('💡 Check: 1) Backend deployed? 2) VITE_API_URL set? 3) CORS enabled?');
+      console.error('💡 Check: 1) Backend running? 2) Proxy configured? 3) CORS enabled?');
     });
 }

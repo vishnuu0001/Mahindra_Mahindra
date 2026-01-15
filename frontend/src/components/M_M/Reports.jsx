@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, Calendar, Filter, TrendingUp, Target, CheckCircle2, AlertCircle, ChevronDown, ChevronRight, RefreshCw, Calculator } from 'lucide-react';
+import { FileText, Download, Calendar, Filter, TrendingUp, Target, CheckCircle2, AlertCircle, ChevronDown, ChevronRight, RefreshCw, Calculator, X } from 'lucide-react';
 import { apiUrl } from '../../config';
 
 const Reports = () => {
@@ -9,6 +9,8 @@ const Reports = () => {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [lastCalculated, setLastCalculated] = useState(null);
+  const [showRoadmapModal, setShowRoadmapModal] = useState(false);
+  const [roadmapData, setRoadmapData] = useState(null);
 
   useEffect(() => {
     fetchAreas();
@@ -216,94 +218,14 @@ const Reports = () => {
         return b.gap - a.gap;
       });
       
-      // Create roadmap visualization
-      let roadmapHTML = `
-        <html>
-        <head>
-          <title>Digital Maturity Transformation Roadmap</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-            h1 { color: #004A96; text-align: center; }
-            h2 { color: #0066CC; margin-top: 30px; }
-            table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            th { background: #004A96; color: white; padding: 12px; text-align: left; font-weight: bold; }
-            td { padding: 10px; border-bottom: 1px solid #e0e0e0; }
-            .high { background: #fee; }
-            .medium { background: #ffc; }
-            .low { background: #efe; }
-            .summary { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            .metric { display: inline-block; margin: 10px 20px; }
-            .metric-value { font-size: 32px; font-weight: bold; color: #004A96; }
-            .metric-label { color: #666; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <h1>🚀 Digital Maturity Transformation Roadmap</h1>
-          
-          <div class="summary">
-            <h2>Executive Summary</h2>
-            <div class="metric">
-              <div class="metric-value">${roadmapItems.length}</div>
-              <div class="metric-label">Transformation Initiatives</div>
-            </div>
-            <div class="metric">
-              <div class="metric-value">${roadmapItems.filter(i => i.priority === 'High').length}</div>
-              <div class="metric-label">High Priority</div>
-            </div>
-            <div class="metric">
-              <div class="metric-value">${Math.round(roadmapItems.reduce((sum, i) => sum + i.effort, 0) / 12)} years</div>
-              <div class="metric-label">Estimated Duration</div>
-            </div>
-            <div class="metric">
-              <div class="metric-value">${areas.length}</div>
-              <div class="metric-label">Focus Areas</div>
-            </div>
-          </div>
-          
-          <h2>📊 Initiative Prioritization Matrix</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Area</th>
-                <th>Dimension</th>
-                <th>Current → Target</th>
-                <th>Gap</th>
-                <th>Priority</th>
-                <th>Effort (months)</th>
-                <th>Impact Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${roadmapItems.map((item, index) => `
-                <tr class="${item.priority.toLowerCase()}">
-                  <td><strong>${index + 1}</strong></td>
-                  <td>${item.area}</td>
-                  <td>${item.dimension}</td>
-                  <td>Level ${item.currentLevel} → Level ${item.targetLevel}</td>
-                  <td><strong>${item.gap} levels</strong></td>
-                  <td><strong>${item.priority}</strong></td>
-                  <td>${item.effort}</td>
-                  <td>${item.impact}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          
-          <div style="margin-top: 30px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h3>Legend</h3>
-            <p><span style="background: #fee; padding: 5px 10px; border-radius: 4px;">High Priority</span> - Gap > 2 levels - Immediate attention required</p>
-            <p><span style="background: #ffc; padding: 5px 10px; border-radius: 4px;">Medium Priority</span> - Gap 1-2 levels - Plan for next phase</p>
-            <p><span style="background: #efe; padding: 5px 10px; border-radius: 4px;">Low Priority</span> - On track or minimal gap</p>
-          </div>
-        </body>
-        </html>
-      `;
-      
-      // Open in new window
-      const newWindow = window.open('', '_blank');
-      newWindow.document.write(roadmapHTML);
-      newWindow.document.close();
+      // Set roadmap data and show modal
+      setRoadmapData({
+        items: roadmapItems,
+        areasCount: areas.length,
+        highPriorityCount: roadmapItems.filter(i => i.priority === 'High').length,
+        totalEffort: roadmapItems.reduce((sum, i) => sum + i.effort, 0)
+      });
+      setShowRoadmapModal(true);
     } catch (error) {
       console.error('Error generating roadmap:', error);
       alert('❌ Error generating roadmap. Please check the console.');
@@ -484,6 +406,136 @@ const Reports = () => {
     );
   };
 
+  // Roadmap Modal Component
+  const RoadmapModal = () => {
+    if (!showRoadmapModal || !roadmapData) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          {/* Modal Header */}
+          <div className="bg-gradient-to-r from-[#004A96] to-[#0066CC] p-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-black text-white uppercase tracking-tight">🚀 Digital Maturity Transformation Roadmap</h2>
+              <p className="text-blue-100 text-sm mt-1">Initiative Prioritization & Planning</p>
+            </div>
+            <button
+              onClick={() => setShowRoadmapModal(false)}
+              className="w-10 h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg flex items-center justify-center transition-all"
+            >
+              <X className="text-white" size={24} />
+            </button>
+          </div>
+
+          {/* Modal Body */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {/* Executive Summary */}
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 mb-6 border border-blue-200">
+              <h3 className="text-lg font-bold text-slate-900 mb-4">Executive Summary</h3>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-3xl font-black text-[#004A96]">{roadmapData.items.length}</div>
+                  <div className="text-xs text-slate-600 uppercase tracking-wider mt-1">Transformation Initiatives</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-black text-[#004A96]">{roadmapData.highPriorityCount}</div>
+                  <div className="text-xs text-slate-600 uppercase tracking-wider mt-1">High Priority</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-black text-[#004A96]">{Math.round(roadmapData.totalEffort / 12)}</div>
+                  <div className="text-xs text-slate-600 uppercase tracking-wider mt-1">Estimated Years</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-black text-[#004A96]">{roadmapData.areasCount}</div>
+                  <div className="text-xs text-slate-600 uppercase tracking-wider mt-1">Focus Areas</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Prioritization Matrix */}
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-[#004A96] text-white">
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">#</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Area</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Dimension</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Current → Target</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Gap</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Priority</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Effort (months)</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Impact Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {roadmapData.items.map((item, index) => {
+                      const priorityColors = {
+                        'High': 'bg-red-50 border-l-4 border-red-500',
+                        'Medium': 'bg-yellow-50 border-l-4 border-yellow-500',
+                        'Low': 'bg-green-50 border-l-4 border-green-500'
+                      };
+                      
+                      return (
+                        <tr key={index} className={`${priorityColors[item.priority]} hover:bg-opacity-80 transition-colors`}>
+                          <td className="px-4 py-3 text-sm font-bold text-slate-900">{index + 1}</td>
+                          <td className="px-4 py-3 text-sm text-slate-700">{item.area}</td>
+                          <td className="px-4 py-3 text-sm text-slate-700">{item.dimension}</td>
+                          <td className="px-4 py-3 text-sm text-slate-700">Level {item.currentLevel} → Level {item.targetLevel}</td>
+                          <td className="px-4 py-3 text-sm font-bold text-slate-900">{item.gap} levels</td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${
+                              item.priority === 'High' ? 'bg-red-200 text-red-800' :
+                              item.priority === 'Medium' ? 'bg-yellow-200 text-yellow-800' :
+                              'bg-green-200 text-green-800'
+                            }`}>
+                              {item.priority}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-700">{item.effort}</td>
+                          <td className="px-4 py-3 text-sm font-semibold text-slate-900">{item.impact}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="mt-6 bg-slate-50 rounded-xl p-4 border border-slate-200">
+              <h4 className="font-bold text-slate-900 text-sm mb-3">Legend</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-3">
+                  <span className="px-3 py-1 bg-red-200 text-red-800 rounded font-semibold text-xs">High Priority</span>
+                  <span className="text-slate-600">Gap &gt; 2 levels - Immediate attention required</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="px-3 py-1 bg-yellow-200 text-yellow-800 rounded font-semibold text-xs">Medium Priority</span>
+                  <span className="text-slate-600">Gap 1-2 levels - Plan for next phase</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="px-3 py-1 bg-green-200 text-green-800 rounded font-semibold text-xs">Low Priority</span>
+                  <span className="text-slate-600">On track or minimal gap</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Modal Footer */}
+          <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
+            <button
+              onClick={() => setShowRoadmapModal(false)}
+              className="px-6 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-bold text-sm uppercase transition-all"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -602,6 +654,9 @@ const Reports = () => {
           ))}
         </div>
       </div>
+
+      {/* Roadmap Modal */}
+      <RoadmapModal />
     </div>
   );
 };
