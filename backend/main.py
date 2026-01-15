@@ -50,6 +50,51 @@ async def root():
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
+@app.post("/api/mm/refresh-all-data")
+def refresh_all_data(db: Session = Depends(get_db)):
+    """Master endpoint to refresh ALL data: reports, rating scales, and maturity levels"""
+    results = {}
+    errors = []
+    
+    try:
+        # 1. Refresh Reports Data (Areas and Dimensions)
+        reports_result = refresh_reports_data(db)
+        results['reports'] = reports_result
+    except Exception as e:
+        errors.append(f"Reports: {str(e)}")
+        results['reports'] = {"status": "error", "message": str(e)}
+    
+    try:
+        # 2. Refresh Rating Scales
+        rating_result = refresh_rating_scales(db)
+        results['rating_scales'] = rating_result
+    except Exception as e:
+        errors.append(f"Rating Scales: {str(e)}")
+        results['rating_scales'] = {"status": "error", "message": str(e)}
+    
+    try:
+        # 3. Refresh Maturity Levels (Checksheet)
+        maturity_result = refresh_simulated_data(db)
+        results['maturity_levels'] = maturity_result
+    except Exception as e:
+        errors.append(f"Maturity Levels: {str(e)}")
+        results['maturity_levels'] = {"status": "error", "message": str(e)}
+    
+    if errors:
+        return {
+            "status": "partial_success",
+            "message": f"Completed with {len(errors)} error(s)",
+            "errors": errors,
+            "results": results
+        }
+    else:
+        return {
+            "status": "success",
+            "message": "All data refreshed successfully",
+            "results": results
+        }
+
+
 # Old SQLite DB_PATH - only used for legacy functions if needed
 # In Vercel serverless, use /tmp directory
 if os.environ.get('VERCEL'):
@@ -539,10 +584,9 @@ def refresh_reports_data(db: Session = Depends(get_db)):
         import pandas as pd
         import random
         
-        # Build path to Excel file
+        # Build path to Excel file in backend directory
         backend_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(backend_dir)
-        excel_path = os.path.join(project_root, 'frontend', 'src', 'components', 'M_M_Data', 'MM_Data.xlsx')
+        excel_path = os.path.join(backend_dir, 'MM_Data.xlsx')
         
         if not os.path.exists(excel_path):
             raise HTTPException(status_code=404, detail=f"Excel file not found at {excel_path}")
@@ -890,10 +934,9 @@ def refresh_simulated_data(db: Session = Depends(get_db)):
         import os
         import pandas as pd
         
-        # Build path to Excel file
+        # Build path to Excel file in backend directory
         backend_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(backend_dir)
-        excel_path = os.path.join(project_root, 'frontend', 'src', 'components', 'M_M_Data', 'MM_Data.xlsx')
+        excel_path = os.path.join(backend_dir, 'MM_Data.xlsx')
         
         if not os.path.exists(excel_path):
             raise HTTPException(status_code=404, detail=f"Excel file not found at {excel_path}")
@@ -976,6 +1019,83 @@ def refresh_simulated_data(db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error refreshing data: {str(e)}")
+
+@app.post("/api/mm/refresh-rating-scales")
+def refresh_rating_scales(db: Session = Depends(get_db)):
+    """Refresh Rating Scales data from Excel file"""
+    try:
+        import os
+        import pandas as pd
+        
+        # Build path to Excel file in backend directory
+        backend_dir = os.path.dirname(os.path.abspath(__file__))
+        excel_path = os.path.join(backend_dir, 'MM_Data.xlsx')
+        
+        if not os.path.exists(excel_path):
+            raise HTTPException(status_code=404, detail=f"Excel file not found at {excel_path}")
+        
+        # Read the Rating Scales Excel sheet (without headers)
+        df = pd.read_excel(excel_path, sheet_name='Rating Scales', header=None)
+        
+        # Clear existing rating scales
+        db.query(RatingScale).delete()
+        db.commit()
+        
+        # Dimension names are in row 5 (index 5)
+        # Extract dimension names from row 5
+        dimension_row = df.iloc[5]
+        dimensions = []
+        for col_idx in [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]:
+            if col_idx < len(dimension_row):
+                dim_name = dimension_row.iloc[col_idx]
+                if pd.notna(dim_name) and str(dim_name).strip() and 'Digital Maturity' not in str(dim_name):
+                    dimensions.append((col_idx, str(dim_name).strip()))
+        
+        loaded_count = 0
+        
+        # Extract data for levels 1-5 (rows 9-13)
+        for col_idx, dimension_name in dimensions:
+            for level_row_idx in range(9, 14):  # Rows 9-13 for levels 1-5
+                level = level_row_idx - 8  # Convert to level 1-5
+                
+                # Get the rating name and description
+                rating_cell = df.iloc[level_row_idx, col_idx]
+                description_cell = df.iloc[level_row_idx, col_idx + 1] if col_idx + 1 < len(df.columns) else None
+                
+                # Business relevance is in rows 18-20 (for levels 1-3 only)
+                business_relevance = None
+                if level <= 3:
+                    business_row_idx = 17 + level  # 18, 19, 20 for levels 1, 2, 3
+                    if business_row_idx < len(df):
+                        business_cell = df.iloc[business_row_idx, col_idx + 1]
+                        if pd.notna(business_cell):
+                            business_relevance = str(business_cell).strip()
+                
+                if pd.notna(rating_cell):
+                    rating_name = str(rating_cell).strip()
+                    rating_desc = str(description_cell).strip() if pd.notna(description_cell) else ""
+                    
+                    rating_scale = RatingScale(
+                        dimension_name=dimension_name,
+                        level=level,
+                        rating_name=rating_name[:200] if len(rating_name) > 200 else rating_name,
+                        digital_maturity_description=rating_desc,
+                        business_relevance=business_relevance
+                    )
+                    db.add(rating_scale)
+                    loaded_count += 1
+        
+        db.commit()
+        return {
+            "status": "success",
+            "message": f"Successfully loaded rating scales",
+            "dimension_count": len(dimensions),
+            "rating_count": loaded_count
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error refreshing rating scales: {str(e)}")
 
 @app.get("/api/mm/rating-scales", response_model=List[RatingScaleResponse])
 def get_rating_scales(db: Session = Depends(get_db)):
