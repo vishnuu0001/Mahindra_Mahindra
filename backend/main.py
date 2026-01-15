@@ -1199,13 +1199,13 @@ def generate_report(db: Session = Depends(get_db)):
         return StreamingResponse(
             pdf_bytes,
             media_type="text/html",
-            headers={{
+            headers={
                 "Content-Disposition": f"attachment; filename=Mahindra_Assessment_Report_{datetime.now().strftime('%Y%m%d')}.html"
-            }}
+            }
         )
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating report: {{str(e)}}")
+        raise HTTPException(status_code=500, detail=f"Error generating report: {str(e)}")
 
 @app.get("/api/mm/rating-scales", response_model=List[RatingScaleResponse])
 def get_rating_scales(db: Session = Depends(get_db)):
