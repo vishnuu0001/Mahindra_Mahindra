@@ -30,10 +30,49 @@ Your backend needs to be accessible from the internet. Here are some free/easy o
 4. Railway will auto-detect Python and deploy
 5. Copy your backend URL
 
-#### Option C: Vercel Serverless (More Complex)
-Convert the FastAPI backend to serverless functions (requires code changes)
+#### Option C: Vercel Serverless (✅ CONFIGURED - RECOMMENDED)
 
-### 2. Configure Frontend Environment Variable on Vercel
+**Your backend is now configured to deploy on Vercel as serverless functions!**
+
+1. Go to https://vercel.com and sign in
+2. Click "Add New" → "Project"
+3. Import your GitHub repository
+4. Configure the project:
+   - **Framework Preset**: Other
+   - **Root Directory**: Leave as default (root)
+   - **Build Command**: Leave empty
+   - **Output Directory**: Leave empty
+5. Click "Deploy"
+6. Once deployed, your backend will be at: `https://your-project-name.vercel.app`
+
+**Important Notes:**
+- The database will reset on each deployment (serverless limitation)
+- For production, consider using a persistent database like:
+  - **Neon** (PostgreSQL - free tier): https://neon.tech
+  - **PlanetScale** (MySQL - free tier): https://planetscale.com
+  - **Supabase** (PostgreSQL - free tier): https://supabase.com
+
+**What was configured:**
+- Created `api/index.py` - Serverless entry point
+- Created `vercel.json` - Vercel configuration
+- Updated `database.py` - Uses `/tmp` for SQLite in serverless
+- Updated `main.py` - Conditional startup for serverless
+- Created `.vercelignore` - Excludes unnecessary files
+- Created `requirements.txt` in root - Python dependencies
+
+### 2. Configure Frontend Environment Variable
+
+#### For Vercel Serverless Backend:
+1. Go to your Vercel **frontend** project dashboard (mahindra-mahindra)
+2. Go to **Settings** → **Environment Variables**
+3. Add a new variable:
+   - **Name**: `VITE_API_URL`
+   - **Value**: `https://your-backend-project-name.vercel.app` (your backend Vercel URL)
+   - **Environment**: Production (and Preview if needed)
+4. Click **Save**
+5. Go to **Deployments** → Click the three dots on latest deployment → **Redeploy**
+
+#### For Render/Railway Backend:
 
 1. Go to your Vercel project dashboard
 2. Go to **Settings** → **Environment Variables**
@@ -65,18 +104,49 @@ npm run dev
 
 ## Code Changes Made
 
-1. **Created** `frontend/src/config.js` - Centralized API configuration
-2. **Updated** All M&M components to use `apiUrl()` helper function instead of hardcoded URLs
-3. **Created** `.env` and `.env.example` files for environment variables
-4. **Backend CORS** - Already configured to allow all origins
+1. **Created** `api/index.py` - Serverless entry point for Vercel
+2. **Created** `vercel.json` - Vercel deployment configuration
+3. **Created** `requirements.txt` (root) - Python dependencies for Vercel
+4. **Created** `.vercelignore` - Excludes unnecessary files from deployment
+5. **Updated** `backend/database.py` - Uses `/tmp` for SQLite in serverless environment
+6. **Updated** `backend/main.py` - Conditional startup event for serverless
+7. **Created** `frontend/src/config.js` - Centralized API configuration
+8. **Updated** All M&M components to use `apiUrl()` helper function instead of hardcoded URLs
+9. **Created** `.env` and `.env.example` files for environment variables
+10. **Backend CORS** - Already configured to allow all origins
 
 ## Files Changed
-- `frontend/src/config.js` (new)
-- `frontend/src/components/M_M/Reports.jsx`
-- `frontend/src/components/M_M/SmartFactoryChecksheet.jsx`
-- `frontend/src/components/M_M/RatingScales.jsx`
-- `frontend/.env` (new)
+
+### Backend Serverless Setup:
+- `api/index.py` (new) - Serverless entry point
+- `vercel.json` (new) - Vercel configuration
+- `requirements.txt` (new, root) - Python dependencies
+- `.vercelignore` (new) - Deployment exclusions
+- `backend/database.py` (modified) - Serverless database handling
+- `backend/ma - QUICK DEPLOY (Recommended)
+
+### Option 1: Deploy Backend to Vercel Serverless (EASIEST)
+
+1. **Deploy Backend to Vercel:**
+   - Go to https://vercel.com
+   - Click "Add New" → "Project" → Import your GitHub repo
+   - Deploy (it will auto-detect the configuration)
+   - Copy your backend URL (e.g., `https://mahindra-backend.vercel.app`)
+
+2. **Update Frontend Environment Variable:**
+   - Go to your frontend Vercel project → Settings → Environment Variables
+   - Add: `VITE_API_URL` = `https://your-backend-url.vercel.app`
+   - Redeploy frontend
+
+3. **Done!** Test at https://mahindra-mahindra.vercel.app/
+
+**Note:** Database resets on each deployment. For production, migrate to PostgreSQL (see below).
+
+### Option 2: Deploy Backend to Render/Railway
+
+Follow the original instructions for Render or Railway, then set the environment variable as described above.
 - `frontend/.env.example` (new)
+- `frontend/.gitignore` (new)
 
 ## Next Steps
 

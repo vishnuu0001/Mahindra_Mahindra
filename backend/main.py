@@ -4,6 +4,7 @@ import sqlite3
 from typing import Dict, List, Optional
 from datetime import datetime
 import random
+import os
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,10 +22,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize database on startup
-@app.on_event("startup")
-async def startup_event():
-    init_db()
+# Initialize database on startup (only for local development)
+# For serverless (Vercel), initialization happens in api/index.py
+if not os.environ.get('VERCEL'):
+    @app.on_event("startup")
+    async def startup_event():
+        init_db()
 
 DB_PATH = Path(__file__).with_name("app.db")
 

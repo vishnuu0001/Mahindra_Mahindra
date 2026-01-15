@@ -2,8 +2,18 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
+import os
+from pathlib import Path
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./manufacturing.db"
+# For serverless, use /tmp directory for SQLite database
+if os.environ.get('VERCEL'):
+    # Vercel serverless environment
+    DB_PATH = "/tmp/manufacturing.db"
+else:
+    # Local development
+    DB_PATH = "./manufacturing.db"
+
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
