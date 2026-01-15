@@ -101,6 +101,215 @@ const Reports = () => {
     }));
   };
 
+  const generateReport = async () => {
+    try {
+      // Generate PDF report
+      const response = await fetch(apiUrl('/api/mm/generate-report'), {
+        method: 'POST',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate report');
+      }
+      
+      // Download the HTML report
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Mahindra_Maturity_Assessment_${new Date().toISOString().split('T')[0]}.html`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      alert('✅ Report generated and downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating report:', error);
+      alert('❌ Error generating report. Please check the console.');
+    }
+  };
+
+  const downloadCSV = () => {
+    try {
+      // Prepare CSV data
+      const csvRows = [];
+      
+      // Headers
+      csvRows.push(['Area', 'Dimension', 'Current Level', 'Desired Level', 'Gap', 'Status', 'Priority']);
+      
+      // Data rows
+      areas.forEach(area => {
+        if (area.dimensions && area.dimensions.length > 0) {
+          area.dimensions.forEach(dim => {
+            const gap = dim.desired_level - dim.current_level;
+            const status = gap === 0 ? 'On Target' : gap > 0 ? 'Below Target' : 'Above Target';
+            const priority = gap > 2 ? 'High' : gap > 0 ? 'Medium' : 'Low';
+            
+            csvRows.push([
+              area.name,
+              dim.name,
+              dim.current_level,
+              dim.desired_level,
+              gap,
+              status,
+              priority
+            ]);
+          });
+        }
+      });
+      
+      // Convert to CSV string
+      const csvContent = csvRows.map(row => 
+        row.map(cell => `"${cell}"`).join(',')
+      ).join('\n');
+      
+      // Download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Mahindra_Assessment_Data_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      alert(`✅ CSV downloaded successfully!\n\n${areas.length} areas with ${areas.reduce((sum, a) => sum + (a.dimensions?.length || 0), 0)} dimensions exported.`);
+    } catch (error) {
+      console.error('Error downloading CSV:', error);
+      alert('❌ Error downloading CSV. Please check the console.');
+    }
+  };
+
+  const viewRoadmap = () => {
+    try {
+      // Prepare roadmap data
+      const roadmapItems = [];
+      
+      areas.forEach(area => {
+        if (area.dimensions && area.dimensions.length > 0) {
+          area.dimensions.forEach(dim => {
+            const gap = dim.desired_level - dim.current_level;
+            if (gap > 0) {
+              roadmapItems.push({
+                area: area.name,
+                dimension: dim.name,
+                currentLevel: dim.current_level,
+                targetLevel: dim.desired_level,
+                gap: gap,
+                priority: gap > 2 ? 'High' : gap > 0 ? 'Medium' : 'Low',
+                effort: gap * 2, // Estimate: 2 months per level
+                impact: dim.desired_level * 20 // Score based on target level
+              });
+            }
+          });
+        }
+      });
+      
+      // Sort by priority (High > Medium > Low) and gap (largest first)
+      roadmapItems.sort((a, b) => {
+        const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+        if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+          return priorityOrder[b.priority] - priorityOrder[a.priority];
+        }
+        return b.gap - a.gap;
+      });
+      
+      // Create roadmap visualization
+      let roadmapHTML = `
+        <html>
+        <head>
+          <title>Digital Maturity Transformation Roadmap</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+            h1 { color: #004A96; text-align: center; }
+            h2 { color: #0066CC; margin-top: 30px; }
+            table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            th { background: #004A96; color: white; padding: 12px; text-align: left; font-weight: bold; }
+            td { padding: 10px; border-bottom: 1px solid #e0e0e0; }
+            .high { background: #fee; }
+            .medium { background: #ffc; }
+            .low { background: #efe; }
+            .summary { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            .metric { display: inline-block; margin: 10px 20px; }
+            .metric-value { font-size: 32px; font-weight: bold; color: #004A96; }
+            .metric-label { color: #666; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <h1>🚀 Digital Maturity Transformation Roadmap</h1>
+          
+          <div class="summary">
+            <h2>Executive Summary</h2>
+            <div class="metric">
+              <div class="metric-value">${roadmapItems.length}</div>
+              <div class="metric-label">Transformation Initiatives</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${roadmapItems.filter(i => i.priority === 'High').length}</div>
+              <div class="metric-label">High Priority</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${Math.round(roadmapItems.reduce((sum, i) => sum + i.effort, 0) / 12)} years</div>
+              <div class="metric-label">Estimated Duration</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${areas.length}</div>
+              <div class="metric-label">Focus Areas</div>
+            </div>
+          </div>
+          
+          <h2>📊 Initiative Prioritization Matrix</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Area</th>
+                <th>Dimension</th>
+                <th>Current → Target</th>
+                <th>Gap</th>
+                <th>Priority</th>
+                <th>Effort (months)</th>
+                <th>Impact Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${roadmapItems.map((item, index) => `
+                <tr class="${item.priority.toLowerCase()}">
+                  <td><strong>${index + 1}</strong></td>
+                  <td>${item.area}</td>
+                  <td>${item.dimension}</td>
+                  <td>Level ${item.currentLevel} → Level ${item.targetLevel}</td>
+                  <td><strong>${item.gap} levels</strong></td>
+                  <td><strong>${item.priority}</strong></td>
+                  <td>${item.effort}</td>
+                  <td>${item.impact}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          
+          <div style="margin-top: 30px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3>Legend</h3>
+            <p><span style="background: #fee; padding: 5px 10px; border-radius: 4px;">High Priority</span> - Gap > 2 levels - Immediate attention required</p>
+            <p><span style="background: #ffc; padding: 5px 10px; border-radius: 4px;">Medium Priority</span> - Gap 1-2 levels - Plan for next phase</p>
+            <p><span style="background: #efe; padding: 5px 10px; border-radius: 4px;">Low Priority</span> - On track or minimal gap</p>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      // Open in new window
+      const newWindow = window.open('', '_blank');
+      newWindow.document.write(roadmapHTML);
+      newWindow.document.close();
+    } catch (error) {
+      console.error('Error generating roadmap:', error);
+      alert('❌ Error generating roadmap. Please check the console.');
+    }
+  };
+
   const getLevelColor = (level) => {
     const colors = {
       1: 'bg-red-100 text-red-700 border-red-200',
@@ -338,7 +547,9 @@ const Reports = () => {
             <h3 className="font-black text-slate-900 uppercase text-sm">Export Report</h3>
           </div>
           <p className="text-slate-600 text-sm mb-4">Download comprehensive maturity assessment reports in PDF or Excel format</p>
-          <button className="w-full px-4 py-2 bg-gradient-to-r from-[#004A96] to-[#0066CC] text-white rounded-lg text-xs font-bold uppercase hover:from-[#003875] hover:to-[#004A96] transition-all">
+          <button 
+            onClick={generateReport}
+            className="w-full px-4 py-2 bg-gradient-to-r from-[#004A96] to-[#0066CC] text-white rounded-lg text-xs font-bold uppercase hover:from-[#003875] hover:to-[#004A96] transition-all">
             Generate Report
           </button>
         </div>
@@ -351,7 +562,9 @@ const Reports = () => {
             <h3 className="font-black text-slate-900 uppercase text-sm">Download Data</h3>
           </div>
           <p className="text-slate-600 text-sm mb-4">Export raw assessment data with dimension scores and gap analysis</p>
-          <button className="w-full px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg text-xs font-bold uppercase hover:from-emerald-700 hover:to-emerald-800 transition-all">
+          <button 
+            onClick={downloadCSV}
+            className="w-full px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg text-xs font-bold uppercase hover:from-emerald-700 hover:to-emerald-800 transition-all">
             Download CSV
           </button>
         </div>
@@ -364,7 +577,9 @@ const Reports = () => {
             <h3 className="font-black text-slate-900 uppercase text-sm">Roadmap View</h3>
           </div>
           <p className="text-slate-600 text-sm mb-4">View transformation roadmap and initiative prioritization matrix</p>
-          <button className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg text-xs font-bold uppercase hover:from-purple-700 hover:to-purple-800 transition-all">
+          <button 
+            onClick={viewRoadmap}
+            className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg text-xs font-bold uppercase hover:from-purple-700 hover:to-purple-800 transition-all">
             View Roadmap
           </button>
         </div>
