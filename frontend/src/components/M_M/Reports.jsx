@@ -61,7 +61,7 @@ const Reports = () => {
   const refreshSimulatedData = async () => {
     setRefreshing(true);
     try {
-      const response = await fetch(apiUrl('/api/mm/refresh-reports-data'), {
+      const response = await fetch(apiUrl('/api/mm/refresh-all-data'), {
         method: 'POST',
       });
       const result = await response.json();
@@ -69,13 +69,26 @@ const Reports = () => {
       if (response.ok) {
         // Reload the areas
         await fetchAreas();
-        alert(`✅ ${result.message}\n\n${result.area_count} Areas\n${result.dimension_count} Dimensions`);
+        
+        // Build success message
+        let message = '✅ All data refreshed successfully!\n\n';
+        if (result.results?.reports) {
+          message += `📊 Reports: ${result.results.reports.area_count} Areas, ${result.results.reports.dimension_count} Dimensions\n`;
+        }
+        if (result.results?.rating_scales) {
+          message += `⭐ Rating Scales: ${result.results.rating_scales.dimension_count} Dimensions, ${result.results.rating_scales.rating_count} Ratings\n`;
+        }
+        if (result.results?.maturity_levels) {
+          message += `📈 Maturity Levels: ${result.results.maturity_levels.count} Items\n`;
+        }
+        
+        alert(message);
       } else {
-        alert(`❌ Error: ${result.detail || 'Failed to refresh data'}`);
+        alert(`❌ Error: ${result.detail || result.message || 'Failed to refresh data'}`);
       }
     } catch (error) {
       console.error('Error refreshing data:', error);
-      alert('❌ Error refreshing simulated data. Please check the console.');
+      alert('❌ Error refreshing data. Please check the console.');
     } finally {
       setRefreshing(false);
     }
