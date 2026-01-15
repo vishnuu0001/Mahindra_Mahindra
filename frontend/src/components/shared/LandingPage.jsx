@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, BarChart3, Target, TrendingUp, Shield, Zap, Award, Factory, Cpu, Database, Network, CheckCircle, Users, Globe } from 'lucide-react';
+import { ArrowRight, BarChart3, Target, TrendingUp, Award, Factory, Users } from 'lucide-react';
 
 const LandingPage = ({ onGetStarted }) => {
   return (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, Calendar, Filter, TrendingUp, Target, CheckCircle2, AlertCircle, ChevronDown, ChevronRight, RefreshCw, Calculator, X } from 'lucide-react';
+import { FileText, Download, TrendingUp, Target, CheckCircle2, AlertCircle, ChevronDown, ChevronRight, RefreshCw, Calculator, X } from 'lucide-react';
 import { apiUrl } from '../../config';
 
 const Reports = () => {
@@ -8,7 +8,6 @@ const Reports = () => {
   const [expandedSections, setExpandedSections] = useState({});
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [lastCalculated, setLastCalculated] = useState(null);
   const [showRoadmapModal, setShowRoadmapModal] = useState(false);
   const [roadmapData, setRoadmapData] = useState(null);
 

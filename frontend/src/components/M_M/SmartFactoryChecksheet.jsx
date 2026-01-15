@@ -19,11 +19,6 @@ const SmartFactoryChecksheet = () => {
   const [assessmentId, setAssessmentId] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchMaturityLevels();
-    initializeAssessment();
-  }, []);
-
   const initializeAssessment = async () => {
     try {
       // Create a new assessment session
@@ -87,6 +82,13 @@ const SmartFactoryChecksheet = () => {
       setLoading(false);
     }
   };
+
+  // Load data on mount
+  useEffect(() => {
+    fetchMaturityLevels();
+    initializeAssessment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const refreshSimulatedData = async () => {
     setRefreshing(true);

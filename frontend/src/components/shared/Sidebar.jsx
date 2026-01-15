@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, ShieldCheck, BarChart3, Users, HelpCircle, GitBranch, ChevronDown, ChevronRight, Building2, Factory, FileText, CheckSquare, Star, Grid } from 'lucide-react';
+import { LayoutDashboard, HelpCircle, ChevronDown, ChevronRight, Factory, FileText, CheckSquare, Star, Grid } from 'lucide-react';
 
 const MENU_STRUCTURE = [
   {
