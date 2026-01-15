@@ -30,6 +30,26 @@ if not os.environ.get('VERCEL'):
     async def startup_event():
         init_sqlalchemy_db()
 
+# Root endpoint - API status
+@app.get("/")
+async def root():
+    return {
+        "status": "online",
+        "service": "Mahindra and Mahindra Digital Maturity API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "endpoints": {
+            "areas": "/api/mm/areas",
+            "maturity_levels": "/api/mm/maturity-levels",
+            "rating_scales": "/api/mm/rating-scales",
+            "assessments": "/api/mm/assessments"
+        }
+    }
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
 # Old SQLite DB_PATH - only used for legacy functions if needed
 # In Vercel serverless, use /tmp directory
 if os.environ.get('VERCEL'):
