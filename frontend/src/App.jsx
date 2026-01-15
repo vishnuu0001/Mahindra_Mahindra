@@ -6,11 +6,20 @@ import Reports from './components/M_M/Reports';
 import SmartFactoryChecksheet from './components/M_M/SmartFactoryChecksheet';
 import RatingScales from './components/M_M/RatingScales';
 import Matrices from './components/M_M/Matrices';
+import ApiDiagnostics from './components/ApiDiagnostics';
 
 const App = () => {
   const [showLanding, setShowLanding] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('Reports');
+
+  // Check URL for diagnostics mode
+  const isDiagnosticsMode = window.location.search.includes('diagnostics');
+
+  // Show diagnostics page if requested
+  if (isDiagnosticsMode) {
+    return <ApiDiagnostics />;
+  }
 
   // Show landing page first
   if (showLanding) {
